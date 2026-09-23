@@ -1,0 +1,15 @@
+[package]
+name = "benchcli-rust"
+version = "0.1.0"
+edition = "2021"
+description = "The Rust HTTP/3 benchmark client of go-http3-benchmark, built on cloudflare/quiche"
+publish = false
+
+[dependencies]
+benchkit.workspace = true
+quiche.workspace = true
+mio.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+libc.workspace = true

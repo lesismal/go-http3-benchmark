@@ -1,0 +1,10 @@
+[package]
+name = "benchkit"
+version = "0.1.0"
+edition = "2021"
+description = "What the benchmark's Rust client and server share: Go-style flags, Go-style log lines, and process sampling"
+publish = false
+
+[dependencies]
+chrono.workspace = true
+libc.workspace = true

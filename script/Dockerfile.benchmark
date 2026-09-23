@@ -1,0 +1,90 @@
+ARG GO_IMAGE=golang:1.27-bookworm
+ARG RUST_IMAGE=rust:1-bookworm
+
+# The Rust toolchain comes from the official image, copied whole into the Go
+# one, so that one image builds the Go servers, the quiche server and the
+# quiche client.
+FROM ${RUST_IMAGE} AS rust
+
+FROM ${GO_IMAGE}
+
+# Where the build downloads from; empty means the upstream default. Set by
+# script/docker_benchmark.sh from its DOCKER_BENCH_* variables, which
+# script/docker_benchmark_cn.sh points at mirrors reachable from mainland China.
+# Build arguments only: none of them is left in the image's environment, and
+# the benchmark itself runs with --network none.
+#   APT_MIRROR     replaces http://deb.debian.org, e.g. https://mirrors.aliyun.com
+#   GO_PROXY       GOPROXY for go mod download, e.g. https://goproxy.cn
+#   CARGO_MIRROR   crates.io replacement as a sparse index URL,
+#                  e.g. sparse+https://rsproxy.cn/index/
+ARG APT_MIRROR=
+ARG GO_PROXY=
+ARG CARGO_MIRROR=
+
+# procps, psmisc and util-linux for pkill/killall and taskset, which the
+# scripts stop the servers and pin them to their CPUs with. cmake, a C++
+# compiler and libclang for the BoringSSL that quiche builds from source.
+RUN if [ -n "$APT_MIRROR" ]; then \
+        for f in /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list; do \
+            if [ -f "$f" ]; then \
+                sed -i "s|http://deb.debian.org|$APT_MIRROR|g; s|http://security.debian.org|$APT_MIRROR|g" "$f"; \
+            fi; \
+        done; \
+    fi \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        procps \
+        psmisc \
+        util-linux \
+        cmake \
+        g++ \
+        libclang-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=rust /usr/local/cargo /usr/local/cargo
+COPY --from=rust /usr/local/rustup /usr/local/rustup
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+
+WORKDIR /workspace
+
+COPY go.mod go.sum ./
+RUN if [ -n "$GO_PROXY" ]; then export GOPROXY="$GO_PROXY"; fi \
+    && go mod download
+
+# The crates, and everything they compile to, in a layer of their own: quiche
+# and its BoringSSL take minutes to build, and change only with Cargo.lock.
+# Each workspace member is built from an empty stand-in here, then again from
+# its real source below.
+COPY Cargo.toml Cargo.lock ./
+COPY benchkit/Cargo.toml benchkit/
+COPY benchcli-rust/Cargo.toml benchcli-rust/
+COPY frameworks/quiche/Cargo.toml frameworks/quiche/
+RUN if [ -n "$CARGO_MIRROR" ]; then \
+        printf '[source.crates-io]\nreplace-with = "mirror"\n\n[source.mirror]\nregistry = "%s"\n' "$CARGO_MIRROR" \
+            > "$CARGO_HOME/config.toml"; \
+    fi \
+    && mkdir -p benchkit/src benchcli-rust/src frameworks/quiche/src \
+    && touch benchkit/src/lib.rs \
+    && echo 'fn main() {}' > benchcli-rust/src/main.rs \
+    && echo 'fn main() {}' > frameworks/quiche/src/main.rs \
+    && cargo build --release --locked \
+    && rm -rf benchkit/src benchcli-rust/src frameworks/quiche/src \
+    && rm -f "$CARGO_HOME/config.toml"
+
+COPY . .
+
+# COPY keeps the build context's timestamps, which can be older than the
+# stand-ins': touch the real sources so that cargo builds them, not the
+# stand-ins it already has. The scripts' own cargo build then finds nothing
+# left to do.
+RUN find benchkit benchcli-rust frameworks/quiche -name '*.rs' -exec touch {} + \
+    && cargo build --release --locked
+
+# The benchmark runs with --network none; everything cargo needs is here.
+ENV CARGO_NET_OFFLINE=true \
+    GOCACHE=/tmp/go-build-cache
+
+CMD ["bash", "script/benchmark.sh"]

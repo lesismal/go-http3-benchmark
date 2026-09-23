@@ -1,0 +1,104 @@
+package report
+
+import (
+	"fmt"
+	"math"
+	"time"
+)
+
+var (
+	BenchRateReportMarkdownHeaders = []string{}
+)
+
+// BenchRateReport is ranked by TPS (rank:"1"), the responses the client read
+// back off the server per second: the rate benchmark opens concurrent request
+// streams at a rate the client sets rather than to completion, so what the
+// server answered under that load is its result, the way TPS is in the other
+// two. Rows with the same TPS are ranked by EER (rank:"2"), the one that spent
+// less CPU on it first.
+type BenchRateReport struct {
+	Framework    string  `json:"Framework" md:"Framework"`
+	Lang         string  `json:"Lang,omitempty" md:"Lang"`
+	BenchClient  string  `json:"BenchClient" md:"Client" fmt:"client" summary:"Client"`
+	Threads      int     `json:"Threads" md:"Threads" summary:"Client Threads"`
+	Duration     int64   `json:"Duration" md:"Duration" fmt:"duration" summary:"Rate Duration"`
+	TPS          int64   `json:"TPS" md:"TPS" rank:"1"`
+	EchoEER      float64 `json:"EchoEER" md:"EER" rank:"2"`
+	SendTimes    int64   `json:"SendTimes" md:"Req Sent"`
+	SendBytes    int64   `json:"SendBytes" md:"Bytes Sent" fmt:"mem"`
+	RecvTimes    int64   `json:"RecvTimes" md:"Resp Recv"`
+	RecvBytes    int64   `json:"RecvBytes" md:"Bytes Recv" fmt:"mem"`
+	Connections  int     `json:"Conns" md:"Conns" summary:"Conns"`
+	SendRate     int     `json:"SendRate" md:"SendRate" summary:"Rate SendRate"`
+	Batch        int     `json:"Batch" md:"Batch" summary:"Rate Batch"`
+	Payload      int     `json:"Payload" md:"Payload" summary:"Payload"`
+	CPUMin       float64 `json:"CPUMin" md:"-" fmt:"cpu"`
+	CPUAvg       float64 `json:"CPUAvg" md:"CPU Avg" fmt:"cpu"`
+	CPUMax       float64 `json:"CPUMax" md:"CPU Max" fmt:"cpu"`
+	MEMRSSMin    uint64  `json:"MEMMin" md:"-" fmt:"mem"`
+	MEMRSSAvg    uint64  `json:"MEMAvg" md:"MEM Avg" fmt:"mem"`
+	MEMRSSMax    uint64  `json:"MEMMax" md:"MEM Max" fmt:"mem"`
+	pprofDataCPU []byte  `json:"-" md:"-" fmt:"-"`
+	pprofDataMEM []byte  `json:"-" md:"-" fmt:"-"`
+}
+
+// BenchMultiplexName is what the multiplexed rate benchmark is called wherever
+// a person reads it: its report table and the files it is written to. The
+// client writes its JSON files under the same name.
+const BenchMultiplexName = "BenchMultiplex"
+
+// SetLang fills the Lang column; see ReadReports.
+func (r *BenchRateReport) SetLang(lang string) {
+	r.Lang = lang
+}
+
+func (r *BenchRateReport) Type() string {
+	return BenchMultiplexName
+}
+
+func (r *BenchRateReport) Name() string {
+	return fmt.Sprintf("%s-%s", r.Framework, BenchMultiplexName)
+}
+
+func (r *BenchRateReport) Headers() []string {
+	return BenchRateReportMarkdownHeaders
+}
+
+func (r *BenchRateReport) Fields(enableTPN bool) []string {
+	return ObjFieldValues(r, enableTPN)
+}
+
+func (r *BenchRateReport) SetPprofData(cpu, mem []byte) {
+	r.pprofDataCPU = cpu
+	r.pprofDataMEM = mem
+}
+
+func (r *BenchRateReport) PprofCPU() []byte {
+	return r.pprofDataCPU
+}
+
+func (r *BenchRateReport) PprofMEM() []byte {
+	return r.pprofDataMEM
+}
+
+func (r *BenchRateReport) String(enableTPN bool) string {
+	return ObjString(r, enableTPN)
+}
+
+// RateTPS is a rate run's TPS: the responses the clients read back per second
+// of duration, in nanoseconds. The division is in floating point, so that a
+// sub-second run is not a division by zero, and 0 stands for no duration.
+func RateTPS(recvTimes, duration int64) float64 {
+	if duration <= 0 {
+		return 0
+	}
+	return float64(recvTimes) / (float64(duration) / float64(time.Second))
+}
+
+// fillTPS works TPS out for a report that has none recorded, so that it still
+// ranks by it when it is read again.
+func (r *BenchRateReport) fillTPS() {
+	if r.TPS == 0 && r.RecvTimes > 0 {
+		r.TPS = int64(math.Floor(RateTPS(r.RecvTimes, r.Duration)))
+	}
+}

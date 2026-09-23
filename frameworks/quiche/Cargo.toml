@@ -1,0 +1,16 @@
+[package]
+name = "quiche-server"
+version = "0.1.0"
+edition = "2021"
+description = "The cloudflare/quiche HTTP/3 server of go-http3-benchmark"
+publish = false
+
+[dependencies]
+benchkit.workspace = true
+quiche.workspace = true
+mio.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+libc.workspace = true
+rcgen = { version = "0.14", default-features = false, features = ["crypto", "pem", "ring"] }
