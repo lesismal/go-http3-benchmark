@@ -158,7 +158,8 @@ runner with fewer than 4 CPUs fails the job.
 
 The reports have the same layout as go-http1-benchmark's: a Summary table of
 the run's parameters, each with a description of what it means and the flag
-that sets it, then one table per benchmark.
+that sets it, then one table per benchmark. The Summary's first row,
+`Project`, names the benchmark: `GO-HTTP3-BENCHMARK`.
 
 - `Lang`, right after `Framework`, is the language the server is written in
   (`go`, `rust`, ...), from `config.FrameworkLangs`.

@@ -276,7 +276,7 @@ func TestSummaryTakesTheParametersOutOfTheTables(t *testing.T) {
 		&BenchRateReport{Framework: "fib", BenchClient: "benchcli-rust", Threads: 4, Duration: 10e9, Connections: 20000, SendRate: 200, Batch: 10, Payload: 1024},
 	}
 	summary := Summary(conns, echo, rate)
-	rows := []string{"Client", "rust", "Client Threads", "4", "Conns", "20000 (fib); 19998 (fasthttp)",
+	rows := []string{"Project", "GO-HTTP3-BENCHMARK", "Client", "rust", "Client Threads", "4", "Conns", "20000 (fib); 19998 (fasthttp)",
 		"Payload", "1024", "Dial Concurrency", "2000", "Echo Concurrency", "10000", "Echo Total", "2000000",
 		"Rate Duration", "10.00s", "Rate SendRate", "200", "Rate Batch", "10"}
 	if !rowOrder(summary, rows...) {
@@ -302,7 +302,8 @@ func TestSummaryTakesTheParametersOutOfTheTables(t *testing.T) {
 	lines := strings.Split(summary, "\n")
 	if lines[0] != "| Parameter        | Value                         | Description                                                             |" ||
 		lines[1] != "| ---              | ---                           | ---                                                                     |" ||
-		lines[2] != "| Client           | rust                          | The benchmark client the load came from                                 |" {
+		lines[2] != "| Project          | GO-HTTP3-BENCHMARK            | The benchmark this run is from                                          |" ||
+		lines[3] != "| Client           | rust                          | The benchmark client the load came from                                 |" {
 		t.Errorf("Summary is not left-aligned:\n%s", summary)
 	}
 

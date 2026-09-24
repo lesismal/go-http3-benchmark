@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+// Project is the name of this benchmark, the first row of the Summary table,
+// so that a report read on its own says which benchmark it is from.
+const Project = "GO-HTTP3-BENCHMARK"
+
 // SummaryParameters is the order the Summary table lists the run's parameters
 // in, and what each one means: the names the report fields are tagged
 // summary:"<name>" with. A tagged name missing from here still gets a row,
@@ -36,7 +40,7 @@ type summaryValue struct {
 	frameworks []string
 }
 
-// Summary is the table of the run's parameters, taken off the summary-tagged
+// Summary is the table of the run's parameters, after the Project, taken off the summary-tagged
 // fields of every row of every report. A parameter every row agrees on - the
 // client, the payload, the concurrency a flag set - reads as that value. One
 // the rows disagree on lists each value with the frameworks that had it:
@@ -69,7 +73,7 @@ func Summary(tables ...[]Report) string {
 		return ""
 	}
 
-	var rows [][]string
+	rows := [][]string{{"Project", Project, "The benchmark this run is from"}}
 	for _, name := range summaryOrder(names) {
 		rows = append(rows, []string{name, summaryString(values[name]), summaryDescription(name)})
 	}
