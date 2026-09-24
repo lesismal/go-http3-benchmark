@@ -8,6 +8,7 @@ is written in Rust on [cloudflare/quiche](https://github.com/cloudflare/quiche).
 | Framework | Package | Server |
 | --- | --- | --- |
 | `fib` | [github.com/lesismal/fib/go](https://github.com/lesismal/fib) | one fib UDP engine bound to every port, HTTP/3 handler from `fib/go/http3` |
+| `gin` | [github.com/gin-gonic/gin](https://github.com/gin-gonic/gin) | a `gin.Engine` (`gin.New`, no middleware) on the same `http3.Server`s as `quicgo`, the server gin's own `RunQUIC` starts |
 | `quicgo` | [github.com/quic-go/quic-go/http3](https://github.com/quic-go/quic-go) | one `http3.Server` per port, all sharing one `ServeMux` |
 | `quiche` | [github.com/cloudflare/quiche](https://github.com/cloudflare/quiche) (Rust) | `quiche::h3` over mio, one thread per CPU, each owning an equal share of the ports and every connection on them |
 
@@ -19,7 +20,11 @@ port. `/init`, `/ps` and, for the Go servers, `/debug/pprof/` are on a
 separate TCP control server on the port after the last benchmark port. That
 way the framework being measured serves nothing but `/echo`.
 
-All three servers get the same transport settings from the same flags:
+Only frameworks that serve HTTP/3 themselves are here. chi, httprouter,
+beego, echo, gorilla/mux and goji have no HTTP/3 or QUIC code, so they are
+left out. gin is included because of `RunQUIC`.
+
+All the servers get the same transport settings from the same flags:
 `-streams` concurrent request streams per connection (100) and an `-idle`
 timeout (120s). Each makes a self-signed ECDSA P-256 certificate when it
 starts, and the client does not verify it.

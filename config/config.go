@@ -25,6 +25,7 @@ type InitArgs struct {
 // obvious place to go in each.
 const (
 	Fib    = "fib"
+	Gin    = "gin"
 	QuicGo = "quicgo"
 	Quiche = "quiche"
 )
@@ -38,6 +39,7 @@ const (
 // same ports, since neither is built from this package.
 var Ports = map[string]string{
 	Fib:    "11001:11050",
+	Gin:    "14001:14050",
 	QuicGo: "12001:12050",
 	Quiche: "13001:13050",
 }
@@ -47,6 +49,7 @@ var Ports = map[string]string{
 // on.
 var FrameworkLangs = map[string]string{
 	Fib:    "go",
+	Gin:    "go",
 	QuicGo: "go",
 	Quiche: "rust",
 }
@@ -56,6 +59,7 @@ var FrameworkLangs = map[string]string{
 // same row in every table and across runs, whatever it scored.
 var FrameworkList = []string{
 	Fib,
+	Gin,
 	QuicGo,
 	Quiche,
 }

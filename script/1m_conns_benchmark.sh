@@ -22,6 +22,7 @@ echo $line
 if [ -z "${BENCH_FRAMEWORKS:-}" ]; then
     frameworks=(
         "fib"
+        "gin"
         "quicgo"
         "quiche"
     )

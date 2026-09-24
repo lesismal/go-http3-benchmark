@@ -95,6 +95,8 @@ SleepTime=5
 # obvious place to go.
 #
 #   fib     github.com/lesismal/fib/go, its HTTP/3 server (fib/go/http3), Go
+#   gin     github.com/gin-gonic/gin, served by quic-go/http3 as its RunQUIC
+#           does, Go
 #   quicgo  github.com/quic-go/quic-go/http3, Go
 #   quiche  github.com/cloudflare/quiche, its quiche::h3 over mio, Rust
 #
@@ -102,6 +104,7 @@ SleepTime=5
 # built with cargo; the others are Go packages built with go build.
 frameworks=(
     "fib"
+    "gin"
     "quicgo"
     "quiche"
 )
