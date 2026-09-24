@@ -3,7 +3,7 @@ module go-http3-benchmark
 go 1.27
 
 require (
-	github.com/lesismal/fib/go v0.0.0-20260924045725-2c3bced8df9f
+	github.com/lesismal/fib/go v0.0.0-20260924084906-12fba64f4822
 	github.com/lesismal/perf v0.0.0-20240508164715-fdb92a70ac1c
 	github.com/quic-go/quic-go v0.63.0
 )
