@@ -69,6 +69,14 @@ func cellString(field reflect.StructField, fieldValue reflect.Value) string {
 		return ""
 	case "duration":
 		return perf.I2TimeString(fieldValue.Int())
+	case "onoff":
+		if fieldValue.IsNil() {
+			return "unknown"
+		}
+		if fieldValue.Elem().Bool() {
+			return "on"
+		}
+		return "off"
 	}
 	switch field.Type.Name() {
 	case "string":

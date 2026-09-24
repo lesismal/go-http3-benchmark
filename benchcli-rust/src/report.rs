@@ -92,6 +92,10 @@ pub struct BenchEchoReport {
     pub payload: usize,
     #[serde(flatten)]
     pub ps: PsStats,
+    /// Whether the client was set to profile Go servers through pprof while
+    /// this benchmark ran (-ep, -rp), which costs them throughput.
+    #[serde(rename = "Pprof")]
+    pub pprof_on: bool,
     #[serde(skip)]
     pub pprof: Option<(Vec<u8>, Vec<u8>)>,
 }
@@ -128,6 +132,10 @@ pub struct BenchRateReport {
     pub payload: usize,
     #[serde(flatten)]
     pub ps: PsStats,
+    /// Whether the client was set to profile Go servers through pprof while
+    /// this benchmark ran (-ep, -rp), which costs them throughput.
+    #[serde(rename = "Pprof")]
+    pub pprof_on: bool,
     #[serde(skip)]
     pub pprof: Option<(Vec<u8>, Vec<u8>)>,
 }
@@ -303,6 +311,7 @@ mod tests {
             batch: 9,
             payload: 10,
             ps: PsStats { cpu_min: 1.0, cpu_avg: 2.0, cpu_max: 3.0, mem_min: 4, mem_avg: 5, mem_max: 6 },
+            pprof_on: true,
             pprof: None,
         };
         let json = serde_json::to_string(&r).unwrap();
@@ -314,6 +323,7 @@ mod tests {
             r#""Batch":9"#,
             r#""CPUAvg":2.0"#,
             r#""MEMMax":6"#,
+            r#""Pprof":true"#,
         ] {
             assert!(json.contains(key), "{key} not in {json}");
         }

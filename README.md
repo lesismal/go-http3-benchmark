@@ -34,7 +34,8 @@ production one. It has no pprof routes; `-ep` and `-rp` skip it.
 BenchEcho or BenchMultiplex runs, are off by default. A CPU profile costs the
 server it is taken from a share of its throughput, and only the Go servers can
 be profiled, so turning it on handicaps them against `quiche`. Turn it on to
-look into a server, not to compare servers.
+look into a server, not to compare servers. The Summary table says whether a
+run had them on, as `Echo Pprof` and `Rate Pprof`.
 
 ## What is measured
 
@@ -176,7 +177,8 @@ that sets it, then one table per benchmark. The Summary's first row,
   column, floored so that only the best row reads `100%`.
 - Parameters shared by every row (`Client`, `Client Threads`, `Conns`,
   `Payload`, each benchmark's concurrency, `Echo Total`, `Rate Duration`,
-  `Rate SendRate`, `Rate Batch`) are in the Summary table instead of the
+  `Rate SendRate`, `Rate Batch`, and `Echo Pprof` and `Rate Pprof`, whether
+  the client profiled the Go servers) are in the Summary table instead of the
   columns. A parameter the rows disagree on lists each value with its
   frameworks, for example `20000 (fib); 19998 (quicgo)`.
 - The JSON files keep every field, including `TP50`, `TP75`, `TP90`,

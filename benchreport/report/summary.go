@@ -21,9 +21,11 @@ var SummaryParameters = []SummaryParameter{
 	{"Dial Concurrency", "Handshakes in progress at once in Connections (-dc)"},
 	{"Echo Concurrency", "Connections with a request in flight at once in BenchEcho (-ec)"},
 	{"Echo Total", "Request/response round trips BenchEcho makes in all (-en)"},
+	{"Echo Pprof", "Whether Go servers were profiled through pprof in BenchEcho (-ep)"},
 	{"Rate Duration", "How long BenchMultiplex sends for (-rd)"},
 	{"Rate SendRate", "Requests sent on each connection per second in BenchMultiplex (-rr)"},
 	{"Rate Batch", "Request streams opened together on a connection in BenchMultiplex (-rb)"},
+	{"Rate Pprof", "Whether Go servers were profiled through pprof in BenchMultiplex (-rp)"},
 }
 
 // SummaryParameter is one row of the Summary table: the parameter's name and

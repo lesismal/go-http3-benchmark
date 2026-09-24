@@ -17,29 +17,32 @@ var (
 // two. Rows with the same TPS are ranked by EER (rank:"2"), the one that spent
 // less CPU on it first.
 type BenchRateReport struct {
-	Framework    string  `json:"Framework" md:"Framework"`
-	Lang         string  `json:"Lang,omitempty" md:"Lang"`
-	BenchClient  string  `json:"BenchClient" md:"Client" fmt:"client" summary:"Client"`
-	Threads      int     `json:"Threads" md:"Threads" summary:"Client Threads"`
-	Duration     int64   `json:"Duration" md:"Duration" fmt:"duration" summary:"Rate Duration"`
-	TPS          int64   `json:"TPS" md:"TPS" rank:"1"`
-	EchoEER      float64 `json:"EchoEER" md:"EER" rank:"2"`
-	SendTimes    int64   `json:"SendTimes" md:"Req Sent"`
-	SendBytes    int64   `json:"SendBytes" md:"Bytes Sent" fmt:"mem"`
-	RecvTimes    int64   `json:"RecvTimes" md:"Resp Recv"`
-	RecvBytes    int64   `json:"RecvBytes" md:"Bytes Recv" fmt:"mem"`
-	Connections  int     `json:"Conns" md:"Conns" summary:"Conns"`
-	SendRate     int     `json:"SendRate" md:"SendRate" summary:"Rate SendRate"`
-	Batch        int     `json:"Batch" md:"Batch" summary:"Rate Batch"`
-	Payload      int     `json:"Payload" md:"Payload" summary:"Payload"`
-	CPUMin       float64 `json:"CPUMin" md:"-" fmt:"cpu"`
-	CPUAvg       float64 `json:"CPUAvg" md:"CPU Avg" fmt:"cpu"`
-	CPUMax       float64 `json:"CPUMax" md:"CPU Max" fmt:"cpu"`
-	MEMRSSMin    uint64  `json:"MEMMin" md:"-" fmt:"mem"`
-	MEMRSSAvg    uint64  `json:"MEMAvg" md:"MEM Avg" fmt:"mem"`
-	MEMRSSMax    uint64  `json:"MEMMax" md:"MEM Max" fmt:"mem"`
-	pprofDataCPU []byte  `json:"-" md:"-" fmt:"-"`
-	pprofDataMEM []byte  `json:"-" md:"-" fmt:"-"`
+	Framework   string  `json:"Framework" md:"Framework"`
+	Lang        string  `json:"Lang,omitempty" md:"Lang"`
+	BenchClient string  `json:"BenchClient" md:"Client" fmt:"client" summary:"Client"`
+	Threads     int     `json:"Threads" md:"Threads" summary:"Client Threads"`
+	Duration    int64   `json:"Duration" md:"Duration" fmt:"duration" summary:"Rate Duration"`
+	TPS         int64   `json:"TPS" md:"TPS" rank:"1"`
+	EchoEER     float64 `json:"EchoEER" md:"EER" rank:"2"`
+	SendTimes   int64   `json:"SendTimes" md:"Req Sent"`
+	SendBytes   int64   `json:"SendBytes" md:"Bytes Sent" fmt:"mem"`
+	RecvTimes   int64   `json:"RecvTimes" md:"Resp Recv"`
+	RecvBytes   int64   `json:"RecvBytes" md:"Bytes Recv" fmt:"mem"`
+	Connections int     `json:"Conns" md:"Conns" summary:"Conns"`
+	SendRate    int     `json:"SendRate" md:"SendRate" summary:"Rate SendRate"`
+	Batch       int     `json:"Batch" md:"Batch" summary:"Rate Batch"`
+	Payload     int     `json:"Payload" md:"Payload" summary:"Payload"`
+	CPUMin      float64 `json:"CPUMin" md:"-" fmt:"cpu"`
+	CPUAvg      float64 `json:"CPUAvg" md:"CPU Avg" fmt:"cpu"`
+	CPUMax      float64 `json:"CPUMax" md:"CPU Max" fmt:"cpu"`
+	MEMRSSMin   uint64  `json:"MEMMin" md:"-" fmt:"mem"`
+	MEMRSSAvg   uint64  `json:"MEMAvg" md:"MEM Avg" fmt:"mem"`
+	MEMRSSMax   uint64  `json:"MEMMax" md:"MEM Max" fmt:"mem"`
+	// Pprof is whether the client profiled Go servers while BenchMultiplex
+	// ran; nil in a report from before the client said.
+	Pprof        *bool  `json:"Pprof,omitempty" fmt:"onoff" summary:"Rate Pprof"`
+	pprofDataCPU []byte `json:"-" md:"-" fmt:"-"`
+	pprofDataMEM []byte `json:"-" md:"-" fmt:"-"`
 }
 
 // BenchMultiplexName is what the multiplexed rate benchmark is called wherever

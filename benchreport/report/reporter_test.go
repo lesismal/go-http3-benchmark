@@ -275,10 +275,15 @@ func TestSummaryTakesTheParametersOutOfTheTables(t *testing.T) {
 	rate := []Report{
 		&BenchRateReport{Framework: "fib", BenchClient: "benchcli-rust", Threads: 4, Duration: 10e9, Connections: 20000, SendRate: 200, Batch: 10, Payload: 1024},
 	}
+	off, on := false, true
+	for _, r := range echo {
+		r.(*BenchEchoReport).Pprof = &off
+	}
+	rate[0].(*BenchRateReport).Pprof = &on
 	summary := Summary(conns, echo, rate)
 	rows := []string{"Project", "GO-HTTP3-BENCHMARK", "Client", "rust", "Client Threads", "4", "Conns", "20000 (fib); 19998 (fasthttp)",
-		"Payload", "1024", "Dial Concurrency", "2000", "Echo Concurrency", "10000", "Echo Total", "2000000",
-		"Rate Duration", "10.00s", "Rate SendRate", "200", "Rate Batch", "10"}
+		"Payload", "1024", "Dial Concurrency", "2000", "Echo Concurrency", "10000", "Echo Total", "2000000", "Echo Pprof", "off",
+		"Rate Duration", "10.00s", "Rate SendRate", "200", "Rate Batch", "10", "Rate Pprof", "on"}
 	if !rowOrder(summary, rows...) {
 		t.Errorf("Summary does not read %v:\n%s", rows, summary)
 	}
@@ -305,6 +310,12 @@ func TestSummaryTakesTheParametersOutOfTheTables(t *testing.T) {
 		lines[2] != "| Project          | GO-HTTP3-BENCHMARK            | The benchmark this run is from                                          |" ||
 		lines[3] != "| Client           | rust                          | The benchmark client the load came from                                 |" {
 		t.Errorf("Summary is not left-aligned:\n%s", summary)
+	}
+
+	// A report from before the client recorded it does not say.
+	old := Summary([]Report{&BenchEchoReport{Framework: "fib", BenchClient: "benchcli-rust"}})
+	if !rowOrder(old, "Echo Pprof", "unknown") {
+		t.Errorf("Summary of a report without Pprof does not read unknown:\n%s", old)
 	}
 
 	if Summary() != "" || Summary(nil, nil) != "" {

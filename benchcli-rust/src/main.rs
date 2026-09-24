@@ -410,6 +410,7 @@ fn main() {
         concurrency: echo_conc,
         payload,
         ps: ps_stats,
+        pprof_on: f.get_bool("ep"),
         pprof: pprof_result(echo_pprof),
     };
     save(&er, &format!("{framework}-BenchEcho"), "BenchEcho", er.pprof.as_ref(), &preffix, &suffix);
@@ -465,6 +466,7 @@ fn main() {
             batch,
             payload,
             ps: ps_stats,
+            pprof_on: f.get_bool("rp"),
             pprof: pprof_result(rate_pprof),
         };
         save(&rr, &format!("{framework}-{BENCH_MULTIPLEX}"), BENCH_MULTIPLEX, rr.pprof.as_ref(), &preffix, &suffix);
