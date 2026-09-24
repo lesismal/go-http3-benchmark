@@ -38,6 +38,8 @@ github.com/klauspost/cpuid/v2 v2.3.0 h1:S4CRMLnYUhGeDFDqkGriYKdfoFlDnMtqTiI/sFzh
 github.com/klauspost/cpuid/v2 v2.3.0/go.mod h1:hqwkgyIinND0mEev00jJYCxPNVRVXFQeu1XKlok6oO0=
 github.com/leodido/go-urn v1.4.0 h1:WT9HwE9SGECu3lg4d/dIA+jxlljEa1/ffXKmRjqdmIQ=
 github.com/leodido/go-urn v1.4.0/go.mod h1:bvxc+MVxLKB4z00jd1z+Dvzr47oO32F/QSNjSBOlFxI=
+github.com/lesismal/fib v0.0.0-20260924110741-9b40137d8d1b h1:77PfdktGU7thUk+DNpM55yXsmeUs+zp9Qey1JSlKcig=
+github.com/lesismal/fib v0.0.0-20260924110741-9b40137d8d1b/go.mod h1:TJt4az7uWt2aoTKADosKQ4VuGKCvPhsEzX+36TwQ1Gw=
 github.com/lesismal/fib/go v0.0.0-20260924084906-12fba64f4822 h1:3qbaUAsAEzFPRNDXbGix3b68CSxSq4vz0h/Dwzz2xxE=
 github.com/lesismal/fib/go v0.0.0-20260924084906-12fba64f4822/go.mod h1:b1pauZmHbnnYd+kmEFzbkky9Z36an7ttGIDsAd/kwnI=
 github.com/lesismal/perf v0.0.0-20240508164715-fdb92a70ac1c h1:cB/Kbeew70XRJAgfRU0Ddf7yPy5jvaN7DeS0F+fP1HA=
