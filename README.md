@@ -30,6 +30,12 @@ threads of its own, so it is measured with the loop in
 [`frameworks/quiche`](frameworks/quiche/src/server.rs) rather than a
 production one. It has no pprof routes; `-ep` and `-rp` skip it.
 
+`-ep` and `-rp`, which fetch a CPU and a heap profile from a Go server while
+BenchEcho or BenchMultiplex runs, are off by default. A CPU profile costs the
+server it is taken from a share of its throughput, and only the Go servers can
+be profiled, so turning it on handicaps them against `quiche`. Turn it on to
+look into a server, not to compare servers.
+
 ## What is measured
 
 The client, [`benchcli-rust`](benchcli-rust), written in Rust on quiche, is

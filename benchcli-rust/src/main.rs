@@ -68,7 +68,7 @@ fn define_flags() -> flags::FlagSet {
     f.int("ec", 10000, "benchecho: concurrency: how many connections have a request in flight at once");
     f.int("en", 2000000, "benchecho: benchmark times");
     f.int("el", 0, "benchecho: TPS limitation per second");
-    f.bool("ep", true, "benchecho: generate pprof report");
+    f.bool("ep", false, "benchecho: generate pprof report");
     f.int("epd", 5, "benchecho: pprof duration");
 
     // BenchMultiplex
