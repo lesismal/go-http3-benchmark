@@ -24,6 +24,9 @@ func main() {
 	h3Config.TLSConfig = frameworks.TLSConfig()
 	h3Config.MaxIdleTimeout = *frameworks.IdleTimeout
 	h3Config.MaxConcurrentStreams = uint64(*frameworks.MaxStreams)
+	// The datagram size the quiche server and benchcli-rust send, where fib
+	// would otherwise keep to the 1200 bytes every path carries.
+	h3Config.MaxDatagramSize = 1350
 	handler := fibhttp3.NewHandlerWithConfig(h3Config, fibhttp.HandlerFunc(onRequest))
 
 	// One UDP engine bound to every benchmark port. A server per port would

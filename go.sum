@@ -1,7 +1,7 @@
 github.com/go-ole/go-ole v1.2.6 h1:/Fpf6oFPoeFik9ty7siob0G6Ke8QvQEuVcuChpwXzpY=
 github.com/go-ole/go-ole v1.2.6/go.mod h1:pprOEPIfldk/42T2oK7lQ4v4JSDwmV0As9GaiUsvbm0=
-github.com/lesismal/fib/go v0.0.0-20260923144357-2d350b97fc33 h1:rscMxkSQW1j98BOb/ZqP+9u86cFWUxSoMZ4PhVZ6DIo=
-github.com/lesismal/fib/go v0.0.0-20260923144357-2d350b97fc33/go.mod h1:b1pauZmHbnnYd+kmEFzbkky9Z36an7ttGIDsAd/kwnI=
+github.com/lesismal/fib/go v0.0.0-20260924045725-2c3bced8df9f h1:/fqideB9+P0KR6AEtbwan/47X48JfJs5eZLbmEvm1Bk=
+github.com/lesismal/fib/go v0.0.0-20260924045725-2c3bced8df9f/go.mod h1:b1pauZmHbnnYd+kmEFzbkky9Z36an7ttGIDsAd/kwnI=
 github.com/lesismal/perf v0.0.0-20240508164715-fdb92a70ac1c h1:cB/Kbeew70XRJAgfRU0Ddf7yPy5jvaN7DeS0F+fP1HA=
 github.com/lesismal/perf v0.0.0-20240508164715-fdb92a70ac1c/go.mod h1:Re4gjh2ATiXLaIOGygcsWYlA2NnWPCCGppJ4GQCVpLw=
 github.com/quic-go/go-ossfuzz-seeds v0.1.0 h1:APacT+iIaNF6fd8AGEiN3bT/Jtkd2jz4v4TzM7MFjy0=
