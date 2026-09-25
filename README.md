@@ -7,7 +7,7 @@ is written in Rust on [cloudflare/quiche](https://github.com/cloudflare/quiche).
 
 | Framework | Package | Server |
 | --- | --- | --- |
-| `fib` | [github.com/lesismal/fib/go](https://github.com/lesismal/fib) | one fib UDP engine bound to every port, HTTP/3 handler from `fib/go/http3` |
+| `fib` | [github.com/lesismal/fib](https://github.com/lesismal/fib) | one fib UDP engine bound to every port, HTTP/3 handler from `fib/http3` |
 | `gin` | [github.com/gin-gonic/gin](https://github.com/gin-gonic/gin) | a `gin.Engine` (`gin.New`, no middleware) on the same `http3.Server`s as `quicgo`, the server gin's own `RunQUIC` starts |
 | `quicgo` | [github.com/quic-go/quic-go/http3](https://github.com/quic-go/quic-go) | one `http3.Server` per port, all sharing one `ServeMux` |
 | `quiche` | [github.com/cloudflare/quiche](https://github.com/cloudflare/quiche) (Rust) | `quiche::h3` over mio, one thread per CPU, each owning an equal share of the ports and every connection on them |

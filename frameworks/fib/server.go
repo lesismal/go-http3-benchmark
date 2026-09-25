@@ -8,9 +8,9 @@ import (
 	"go-http3-benchmark/frameworks"
 	"go-http3-benchmark/logging"
 
-	fib "github.com/lesismal/fib/go"
-	fibhttp "github.com/lesismal/fib/go/http"
-	fibhttp3 "github.com/lesismal/fib/go/http3"
+	"github.com/lesismal/fib"
+	fibhttp "github.com/lesismal/fib/http"
+	fibhttp3 "github.com/lesismal/fib/http3"
 )
 
 func main() {

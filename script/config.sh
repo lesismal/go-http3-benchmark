@@ -94,7 +94,7 @@ SleepTime=5
 # that a framework is in the same place in every list and a new one has one
 # obvious place to go.
 #
-#   fib     github.com/lesismal/fib/go, its HTTP/3 server (fib/go/http3), Go
+#   fib     github.com/lesismal/fib, its HTTP/3 server (fib/http3), Go
 #   gin     github.com/gin-gonic/gin, served by quic-go/http3 as its RunQUIC
 #           does, Go
 #   quicgo  github.com/quic-go/quic-go/http3, Go
