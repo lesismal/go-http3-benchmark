@@ -209,6 +209,10 @@ run_args=(
     # own. The UDP buffer ceilings, net.core.rmem_max and wmem_max, are not
     # namespaced and cannot be raised from here; see the README.
     --sysctl "net.ipv4.ip_local_port_range=1024 65535"
+    # The servers' ports, kept from every client socket; see ReservedPorts in
+    # script/config.sh. /proc/sys is read-only in the container, so this is
+    # the only place it can be set.
+    --sysctl "net.ipv4.ip_local_reserved_ports=$ReservedPorts"
     --env "BENCH_SERVER_CPU_LIST=$server_cpu_list"
     --env "BENCH_CLIENT_CPU_LIST=$client_cpu_list"
     # Without this the container would write its tables in the default order

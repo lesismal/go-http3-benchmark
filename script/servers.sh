@@ -17,6 +17,7 @@ if [ -z "${server_flags+set}" ]; then
     # Invoked directly rather than sourced: take our own arguments.
     . ./script/env.sh || { return 1 2>/dev/null || exit 1; }
     server_flags="$*"
+    reserve_server_ports
 fi
 
 servers_status=0

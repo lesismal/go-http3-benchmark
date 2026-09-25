@@ -1,16 +1,17 @@
 //! The frameworks and their ports: the same table as config/config.go, which
 //! the Go servers are built from, and frameworks/quiche/src/main.rs. Kept in
 //! framework-name order like every other framework list in the repository.
+//! config.TestPortsMatch holds this table to the Go one.
 
 use std::net::{IpAddr, SocketAddr, ToSocketAddrs, UdpSocket};
 
 /// Name, first and last benchmark port, and whether the server is a Go
 /// program with pprof routes on its control port.
 pub const FRAMEWORKS: &[(&str, u16, u16, bool)] = &[
-    ("fib", 11001, 11050, true),
-    ("gin", 14001, 14050, true),
-    ("quicgo", 12001, 12050, true),
-    ("quiche", 13001, 13050, false),
+    ("fib", 3001, 3050, true),
+    ("gin", 3101, 3150, true),
+    ("quicgo", 3201, 3250, true),
+    ("quiche", 3301, 3350, false),
 ];
 
 pub const ECHO_PATH: &str = "/echo";
@@ -104,20 +105,20 @@ mod tests {
     fn addrs() {
         let a = benchmark_addrs("quicgo", "::1").unwrap();
         assert_eq!(a.len(), 50);
-        assert_eq!(a[0].to_string(), "[::1]:12001");
-        assert_eq!(a[49].to_string(), "[::1]:12050");
+        assert_eq!(a[0].to_string(), "[::1]:3201");
+        assert_eq!(a[49].to_string(), "[::1]:3250");
         assert_eq!(
             benchmark_addrs("quiche", "::1").unwrap()[0].to_string(),
-            "[::1]:13001"
+            "[::1]:3301"
         );
         assert!(serves_pprof("fib") && !serves_pprof("quiche"));
         assert_eq!(
             benchmark_addrs("fib", "[::1]").unwrap()[0].to_string(),
-            "[::1]:11001"
+            "[::1]:3001"
         );
         assert_eq!(
             control_addr("fib", "127.0.0.1").unwrap().to_string(),
-            "127.0.0.1:11051"
+            "127.0.0.1:3051"
         );
         assert!(benchmark_addrs("gorilla", "127.0.0.1").is_err());
         assert_eq!(authority("::1"), "[::1]");

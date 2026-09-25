@@ -122,9 +122,9 @@ server_pid_file() { echo "./output/run/${1}.server.pid"; }
 # no sign of readiness. Fails if the server exits first or takes longer than
 # ServerStartTimeout. A server that exits because one of its ports is in use
 # is started again, up to ServerStartRetries times, ServerStartRetryDelay
-# seconds apart: a sibling benchmark on the same machine may hold that port
-# for a while - go-http1-benchmark's servers use TCP 13001 to 13051, and 13051
-# is quiche's control port here.
+# seconds apart: where reserve_server_ports could not reserve them, a client
+# socket may still hold one for a while, such as a control connection in
+# TIME_WAIT.
 start_server() {
     local f=$1
     shift
@@ -189,6 +189,57 @@ stop_server() {
     fi
     rm -f "$pid_file"
     echo "stop ${f} server done"
+}
+
+# ports_covered <list> <first> <last>: whether a list in the kernel's
+# ip_local_reserved_ports format, such as "80,3001-3200,3201-3351", covers
+# every port from first to last.
+ports_covered() {
+    printf '%s\n' "$1" | tr ',' '\n' \
+        | awk -F- 'NF { print $1, (NF > 1 ? $2 : $1) }' | sort -n \
+        | awk -v need="$2" -v last="$3" '
+            $1 <= need && $2 >= need { need = $2 + 1 }
+            END { exit !(need > last) }'
+}
+
+# Keeps the kernel from giving a server port to any client socket; see
+# ReservedPorts in script/config.sh. It never stops a run: where it cannot
+# reserve them it says how to, and start_server still retries a server whose
+# port was taken.
+reserve_server_ports() {
+    local first=${ReservedPorts%-*} last=${ReservedPorts#*-}
+    case "$(uname -s)" in
+        Linux)
+            local file=/proc/sys/net/ipv4/ip_local_reserved_ports current
+            if ! current=$(cat "$file" 2>/dev/null); then
+                echo "warning: cannot read ${file}; server ports ${ReservedPorts} are not reserved" >&2
+                return 0
+            fi
+            if ports_covered "$current" "$first" "$last"; then
+                echo "server ports ${ReservedPorts} reserved: ip_local_reserved_ports=${current}"
+                return 0
+            fi
+            # Added to what is there, which is someone else's to keep.
+            if { echo "${current:+${current},}${ReservedPorts}" >"$file"; } 2>/dev/null \
+                && ports_covered "$(cat "$file")" "$first" "$last"; then
+                echo "server ports ${ReservedPorts} reserved: ip_local_reserved_ports=$(cat "$file")"
+            else
+                echo "warning: server ports ${ReservedPorts} are not reserved, so a client socket may hold one;" >&2
+                echo "  as root: sysctl -w net.ipv4.ip_local_reserved_ports=${current:+${current},}${ReservedPorts}" >&2
+            fi
+            ;;
+        Darwin)
+            local ephemeral_first high_first
+            ephemeral_first=$(sysctl -n net.inet.ip.portrange.first 2>/dev/null || echo 0)
+            high_first=$(sysctl -n net.inet.ip.portrange.hifirst 2>/dev/null || echo 0)
+            if [ "$ephemeral_first" -gt "$last" ] && [ "$high_first" -gt "$last" ]; then
+                echo "server ports ${ReservedPorts} are below the ephemeral ports, ${ephemeral_first} and up"
+            else
+                echo "warning: the ephemeral ports start at ${ephemeral_first} (high: ${high_first}), so a client socket may hold a server port in ${ReservedPorts};" >&2
+                echo "  sudo sysctl -w net.inet.ip.portrange.first=49152 net.inet.ip.portrange.hifirst=49152" >&2
+            fi
+            ;;
+    esac
 }
 
 # The pause between two client runs.

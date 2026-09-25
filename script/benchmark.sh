@@ -32,6 +32,12 @@ for arg in "$@"; do
     esac
 done
 
+# Before any server binds its ports, and before any client could take one.
+if bench_runs_servers; then
+    reserve_server_ports
+    echo $line
+fi
+
 # A server node starts every server and leaves them up for the client node. A
 # single-node run starts each one only for its own turn, in script/clients.sh.
 if ! bench_runs_clients; then

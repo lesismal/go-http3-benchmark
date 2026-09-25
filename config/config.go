@@ -31,18 +31,32 @@ const (
 )
 
 // Ports is the range of UDP benchmark ports each framework's server listens
-// on. Fifty of them, so that a client dialing a million connections from one
-// address, each from a UDP socket of its own, does not run out of ephemeral
-// ports towards any one of them.
+// on: fifty of them, which the servers spread their sockets and threads over.
+// The control port is the one after the last. Each framework takes the next
+// hundred ports, so that every server port fits in ReservedPorts.
 //
 // benchcli-rust/src/config.rs and frameworks/quiche/src/main.rs carry the
-// same ports, since neither is built from this package.
+// same ports, since neither is built from this package; TestPortsMatch holds
+// them to these.
 var Ports = map[string]string{
-	Fib:    "11001:11050",
-	Gin:    "14001:14050",
-	QuicGo: "12001:12050",
-	Quiche: "13001:13050",
+	Fib:    "3001:3050",
+	Gin:    "3101:3150",
+	QuicGo: "3201:3250",
+	Quiche: "3301:3350",
 }
+
+// ReservedPorts is every server port, benchmark and control alike, as one
+// range. The scripts reserve it as net.ipv4.ip_local_reserved_ports on Linux,
+// so that the kernel never gives one of these ports to a client's socket: not
+// to a live UDP socket of a benchmark connection, and not to a TCP control
+// connection that lingers in TIME_WAIT after its client is done, either of
+// which would stop the next server from binding it. The client keeps the rest
+// of its ephemeral range, 1024-65535 as the README sets it, and macOS's
+// default range starts far above these. It sits below every port the sibling
+// go-http1/http2/websocket benchmarks listen on (10001 and up).
+//
+// script/config.sh carries the same range; TestPortsMatch holds it to this.
+const ReservedPorts = "3001-3351"
 
 // FrameworkLangs is the language each framework's server is written in, as
 // the Lang column of the report tables shows it: "go", "rust", "c++" and so

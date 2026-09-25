@@ -28,7 +28,7 @@ use benchkit::flags::FlagSet;
 const FRAMEWORK: &str = "quiche";
 /// The benchmark ports, as config/config.go and benchcli-rust list them;
 /// the control port is the one after the last.
-const PORTS: (u16, u16) = (13001, 13050);
+const PORTS: (u16, u16) = (3301, 3350);
 
 static INTERRUPTED: AtomicBool = AtomicBool::new(false);
 

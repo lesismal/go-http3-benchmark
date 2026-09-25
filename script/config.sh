@@ -106,6 +106,16 @@ ServerStartRetryDelay=3
 ServerReadyDelay=1
 ServerStopTimeout=10
 
+# Every server port, benchmark and control alike: fib 3001-3051, gin
+# 3101-3151, quicgo 3201-3251 and quiche 3301-3351, as config.Ports lays them
+# out (config.TestPortsMatch holds this to config.ReservedPorts). Before
+# starting servers the drivers reserve it from the kernel's ephemeral ports -
+# net.ipv4.ip_local_reserved_ports on Linux, which needs root or, in Docker,
+# the --sysctl script/docker_benchmark.sh passes - so that no client socket,
+# live or in TIME_WAIT, can hold a port a server is about to bind. On macOS
+# they are already below the ephemeral range, which starts at 49152.
+ReservedPorts="3001-3351"
+
 # Which frameworks a run measures, and the order the servers are started and
 # the clients run in. In framework-name order, like config.FrameworkList, so
 # that a framework is in the same place in every list and a new one has one

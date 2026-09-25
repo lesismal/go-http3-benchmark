@@ -14,11 +14,24 @@ is written in Rust on [cloudflare/quiche](https://github.com/cloudflare/quiche).
 
 Every server answers `POST /echo` with the request body, byte for byte, with a
 `Content-Length`. Each one listens on 50 UDP ports (see `config.Ports`), and
-the client gives every connection a UDP socket of its own, so that a million
-connections from one address do not run out of ephemeral ports toward any one
-port. `/init`, `/ps` and, for the Go servers, `/debug/pprof/` are on a
-separate TCP control server on the port after the last benchmark port. That
-way the framework being measured serves nothing but `/echo`.
+the client gives every connection a UDP socket of its own, spread over them.
+`/init`, `/ps` and, for the Go servers, `/debug/pprof/` are on a separate TCP
+control server on the port after the last benchmark port. That way the
+framework being measured serves nothing but `/echo`.
+
+| Framework | UDP benchmark ports | TCP control port |
+| --- | --- | --- |
+| `fib` | 3001-3050 | 3051 |
+| `gin` | 3101-3150 | 3151 |
+| `quicgo` | 3201-3250 | 3251 |
+| `quiche` | 3301-3350 | 3351 |
+
+All of them are in one small block, 3001-3351 (`config.ReservedPorts`), below
+the ports the sibling go-http1/http2/websocket benchmarks use. Every client
+connection takes a local port of its own, so the rest of the ephemeral range
+is left to the client. The scripts reserve the block from it on Linux (see
+below). No client socket, live or in TIME_WAIT, can then hold a port that a
+server is about to bind.
 
 Only frameworks that serve HTTP/3 themselves are here. chi, httprouter,
 beego, echo, gorilla/mux and goji have no HTTP/3 or QUIC code, so they are
@@ -233,6 +246,7 @@ when it cannot have them):
 
 ```sh
 sysctl -w net.ipv4.ip_local_port_range="1024 65535"
+sysctl -w net.ipv4.ip_local_reserved_ports="3001-3351"
 sysctl -w fs.file-max=2000500
 sysctl -w fs.nr_open=2000500
 ulimit -n 2000500
@@ -240,6 +254,13 @@ sysctl -w net.core.rmem_max=7500000
 sysctl -w net.core.wmem_max=7500000
 sysctl -w net.core.netdev_max_backlog=2048
 ```
+
+The benchmark scripts add `3001-3351` to `ip_local_reserved_ports` themselves
+when they run as root, keeping whatever is reserved already. Otherwise they
+print the command and go on. On macOS nothing needs reserving: the ephemeral
+ports start at 49152 unless `net.inet.ip.portrange.first` was lowered, and
+the scripts warn if it was. None of these settings outlive a reboot. Put them
+in `/etc/sysctl.d/` to keep them.
 
 In Docker, `net.core.rmem_max` and `wmem_max` belong to the host, not the
 container: set them on the host (or in the Docker Desktop VM) before a large
