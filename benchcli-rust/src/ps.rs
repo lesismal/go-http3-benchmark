@@ -1,4 +1,4 @@
-//! Where a report's CPU and MEM columns - and so EER - come from.
+//! Where a report's CPU and MEM columns - and so CPU EER and MEM EER - come from.
 //!
 //! The server is sampled from this machine when it runs here: the process is
 //! found by the name script/build.sh built it under, <framework>.server, and

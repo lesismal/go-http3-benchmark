@@ -386,14 +386,15 @@ fn main() {
     let s = summarize(&mut lat, used);
     let (ps_stats, err) = source.stats_since(mark);
     if let Some(e) = err {
-        logf!("BenchEcho: resource statistics for {framework} incomplete, EER will read 0: {e}");
+        logf!("BenchEcho: resource statistics for {framework} incomplete, CPU EER and MEM EER will read 0: {e}");
     }
     let er = BenchEchoReport {
         framework: framework.clone(),
         bench_client: CLIENT_NAME.into(),
         threads,
         tps: s.tps,
-        eer: report::eer(s.tps as f64, ps_stats.cpu_avg),
+        cpu_eer: report::cpu_eer(s.tps as f64, ps_stats.cpu_avg),
+        mem_eer: report::mem_eer(s.tps as f64, ps_stats.mem_avg),
         min: s.min,
         avg: s.avg,
         max: s.max,
@@ -447,7 +448,7 @@ fn main() {
         }
         let (ps_stats, err) = source.stats_since(mark);
         if let Some(e) = err {
-            logf!("{BENCH_MULTIPLEX}: resource statistics for {framework} incomplete, EER will read 0: {e}");
+            logf!("{BENCH_MULTIPLEX}: resource statistics for {framework} incomplete, CPU EER and MEM EER will read 0: {e}");
         }
         let tps = counts.recv_times as f64 / duration.as_secs_f64();
         let rr = BenchRateReport {
@@ -456,7 +457,8 @@ fn main() {
             threads,
             duration: duration.as_nanos() as i64,
             tps: tps.floor() as i64,
-            echo_eer: report::eer(tps, ps_stats.cpu_avg),
+            cpu_eer: report::cpu_eer(tps, ps_stats.cpu_avg),
+            mem_eer: report::mem_eer(tps, ps_stats.mem_avg),
             send_times: counts.send_times,
             send_bytes: counts.send_bytes,
             recv_times: counts.recv_times,

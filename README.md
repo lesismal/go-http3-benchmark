@@ -81,13 +81,15 @@ default), each driving its share of the connections with quiche and mio.
 A BenchEcho request that finds its connection's flow control or congestion
 window full waits on that connection, as an HTTP/1 client blocks in its write.
 
-`EER` is throughput per percent of a CPU core: `TPS / CPU Avg`. The server's
+`CPU EER` is throughput per percent of a CPU core: `TPS / CPU Avg`. `MEM EER`
+is throughput per MB (1024*1024 bytes) of resident memory: `TPS / MEM Avg`,
+with `MEM Avg` in MB. The server's
 CPU and memory are sampled every `-pi` ms. `-ps=auto` (the default) samples the
 server process from the client side when it runs on the same machine, and asks
 the server's `/ps` route when it does not; `local` and `remote` force one or
 the other. Each benchmark reads only the samples taken while it ran. A
-benchmark shorter than one sampling interval has no samples, and its CPU, MEM
-and EER columns read 0; the client logs a message when that happens.
+benchmark shorter than one sampling interval has no samples, and its CPU, MEM,
+CPU EER and MEM EER columns read 0; the client logs a message when that happens.
 
 ## Run
 
@@ -176,8 +178,8 @@ that sets it, then one table per benchmark. The Summary's first row,
 - `Lang`, right after `Framework`, is the language the server is written in
   (`go`, `rust`, ...), from `config.FrameworkLangs`.
 - Rows are ranked best first by `TPS`. In `BenchEcho` and `BenchMultiplex`, a
-  tie is broken by `EER`. The ranked columns carry `[↓1]` and `[↓2]` in their
-  titles.
+  tie is broken by `CPU EER`, and a tie on both by `MEM EER`. The ranked
+  columns carry `[↓1]`, `[↓2]` and `[↓3]` in their titles.
 - Every ranked column shows each row's share of the best value in that
   column, floored so that only the best row reads `100%`.
 - Parameters shared by every row (`Client`, `Client Threads`, `Conns`,

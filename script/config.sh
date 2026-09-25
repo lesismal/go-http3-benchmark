@@ -54,8 +54,9 @@ fi
 #   result     (default) best first, ranked by the number each benchmark
 #              answers with: TPS in all three - for BenchMultiplex the
 #              responses the client read back off the server per second -
-#              with EER breaking a tie in BenchEcho and BenchMultiplex
-#              (Connections samples no CPU, so it has none). The rate test
+#              with CPU EER breaking a tie in BenchEcho and BenchMultiplex,
+#              and MEM EER a tie on both (Connections samples no CPU or
+#              memory, so it has neither). The rate test
 #              opens request streams at a rate the client sets rather than to
 #              completion, so what came back under that load is its result
 #              there the way TPS is in the other two; Req Sent is the load
@@ -67,12 +68,12 @@ fi
 #              the frameworks array below decides what is built and run, and is
 #              kept in the same order so that the two read alike
 #
-# In either order every ranked column - TPS, and EER - shows each row's share
-# of the best in that column after it, the best being 100%, and carries [↓1]
-# or [↓2] after its title for which key it is. Rows that tie keep the
-# framework order between them, so two frameworks that scored the same - or a
-# whole table from a benchmark that did not run, which leaves every row at
-# zero - come out the same way on every run.
+# In either order every ranked column - TPS, CPU EER and MEM EER - shows each
+# row's share of the best in that column after it, the best being 100%, and
+# carries [↓1], [↓2] or [↓3] after its title for which key it is. Rows that
+# tie keep the framework order between them, so two frameworks that scored the
+# same - or a whole table from a benchmark that did not run, which leaves every
+# row at zero - come out the same way on every run.
 #
 # Override for one run with: BENCH_REPORT_SORT=framework bash script/benchmark.sh
 # or, without re-running the benchmark, by passing the client flag straight to

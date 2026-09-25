@@ -58,8 +58,10 @@ pub struct BenchEchoReport {
     pub threads: usize,
     #[serde(rename = "TPS")]
     pub tps: i64,
-    #[serde(rename = "EER")]
-    pub eer: f64,
+    #[serde(rename = "CPUEER")]
+    pub cpu_eer: f64,
+    #[serde(rename = "MEMEER")]
+    pub mem_eer: f64,
     #[serde(rename = "Min")]
     pub min: i64,
     #[serde(rename = "Avg")]
@@ -112,8 +114,10 @@ pub struct BenchRateReport {
     pub duration: i64,
     #[serde(rename = "TPS")]
     pub tps: i64,
-    #[serde(rename = "EchoEER")]
-    pub echo_eer: f64,
+    #[serde(rename = "CPUEER")]
+    pub cpu_eer: f64,
+    #[serde(rename = "MEMEER")]
+    pub mem_eer: f64,
     #[serde(rename = "SendTimes")]
     pub send_times: u64,
     #[serde(rename = "SendBytes")]
@@ -140,13 +144,25 @@ pub struct BenchRateReport {
     pub pprof: Option<(Vec<u8>, Vec<u8>)>,
 }
 
-/// The throughput a server got for each percent of a CPU core it spent, or 0
-/// when there is nothing to divide by, which JSON could not carry otherwise.
-pub fn eer(throughput: f64, cpu_avg: f64) -> f64 {
-    if cpu_avg <= 0.0 || !cpu_avg.is_finite() || !throughput.is_finite() {
+/// CPU EER: the throughput a server got for each percent of a CPU core it
+/// spent, or 0 when there is nothing to divide by.
+pub fn cpu_eer(throughput: f64, cpu_avg: f64) -> f64 {
+    eer(throughput, cpu_avg)
+}
+
+/// MEM EER: the throughput a server got for each MB (1024*1024 bytes) of
+/// resident memory it held, or 0 when there is nothing to divide by.
+pub fn mem_eer(throughput: f64, mem_avg: u64) -> f64 {
+    eer(throughput, mem_avg as f64 / (1024.0 * 1024.0))
+}
+
+/// throughput / cost, or 0 when there is nothing to divide by, which JSON
+/// could not carry otherwise.
+fn eer(throughput: f64, cost: f64) -> f64 {
+    if cost <= 0.0 || !cost.is_finite() || !throughput.is_finite() {
         return 0.0;
     }
-    let v = throughput / cpu_avg;
+    let v = throughput / cost;
     if v.is_finite() {
         v
     } else {
@@ -249,7 +265,8 @@ impl BenchEchoReport {
             ("Client", client_name()),
             ("Threads", self.threads.to_string()),
             ("TPS", self.tps.to_string()),
-            ("EER", format!("{:.2}", self.eer)),
+            ("CPU EER", format!("{:.2}", self.cpu_eer)),
+            ("MEM EER", format!("{:.2}", self.mem_eer)),
         ];
         rows.extend(latency_rows(s, tpn));
         rows.extend([
@@ -274,7 +291,8 @@ impl BenchRateReport {
             ("Threads", self.threads.to_string()),
             ("Duration", time_string(self.duration)),
             ("TPS", self.tps.to_string()),
-            ("EER", format!("{:.2}", self.echo_eer)),
+            ("CPU EER", format!("{:.2}", self.cpu_eer)),
+            ("MEM EER", format!("{:.2}", self.mem_eer)),
             ("Req Sent", self.send_times.to_string()),
             ("Bytes Sent", mem_string(self.send_bytes)),
             ("Resp Recv", self.recv_times.to_string()),
@@ -301,7 +319,8 @@ mod tests {
             threads: 4,
             duration: 10_000_000_000,
             tps: 1,
-            echo_eer: 2.5,
+            cpu_eer: 2.5,
+            mem_eer: 1.5,
             send_times: 3,
             send_bytes: 4,
             recv_times: 5,
@@ -318,7 +337,8 @@ mod tests {
         for key in [
             r#""Framework":"fib""#,
             r#""BenchClient":"benchcli-rust""#,
-            r#""EchoEER":2.5"#,
+            r#""CPUEER":2.5"#,
+            r#""MEMEER":1.5"#,
             r#""Conns":7"#,
             r#""Batch":9"#,
             r#""CPUAvg":2.0"#,
@@ -327,7 +347,9 @@ mod tests {
         ] {
             assert!(json.contains(key), "{key} not in {json}");
         }
-        assert_eq!(eer(10.0, 0.0), 0.0);
-        assert_eq!(eer(10.0, 4.0), 2.5);
+        assert_eq!(cpu_eer(10.0, 0.0), 0.0);
+        assert_eq!(cpu_eer(10.0, 4.0), 2.5);
+        assert_eq!(mem_eer(10.0, 0), 0.0);
+        assert_eq!(mem_eer(10.0, 4 * 1024 * 1024), 2.5);
     }
 }

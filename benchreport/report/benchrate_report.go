@@ -14,8 +14,9 @@ var (
 // back off the server per second: the rate benchmark opens concurrent request
 // streams at a rate the client sets rather than to completion, so what the
 // server answered under that load is its result, the way TPS is in the other
-// two. Rows with the same TPS are ranked by EER (rank:"2"), the one that spent
-// less CPU on it first.
+// two. Rows with the same TPS are ranked by CPU EER (rank:"2"), the one that
+// spent less CPU on it first, and then by MEM EER (rank:"3"), the one that held
+// less memory for it first.
 type BenchRateReport struct {
 	Framework   string  `json:"Framework" md:"Framework"`
 	Lang        string  `json:"Lang,omitempty" md:"Lang"`
@@ -23,7 +24,8 @@ type BenchRateReport struct {
 	Threads     int     `json:"Threads" md:"Threads" summary:"Client Threads"`
 	Duration    int64   `json:"Duration" md:"Duration" fmt:"duration" summary:"Rate Duration"`
 	TPS         int64   `json:"TPS" md:"TPS" rank:"1"`
-	EchoEER     float64 `json:"EchoEER" md:"EER" rank:"2"`
+	CPUEER      float64 `json:"CPUEER" md:"CPU EER" rank:"2"`
+	MEMEER      float64 `json:"MEMEER" md:"MEM EER" rank:"3"`
 	SendTimes   int64   `json:"SendTimes" md:"Req Sent"`
 	SendBytes   int64   `json:"SendBytes" md:"Bytes Sent" fmt:"mem"`
 	RecvTimes   int64   `json:"RecvTimes" md:"Resp Recv"`
@@ -103,5 +105,22 @@ func RateTPS(recvTimes, duration int64) float64 {
 func (r *BenchRateReport) fillTPS() {
 	if r.TPS == 0 && r.RecvTimes > 0 {
 		r.TPS = int64(math.Floor(RateTPS(r.RecvTimes, r.Duration)))
+	}
+}
+
+// fillEER works CPU EER and MEM EER out for a report that has none recorded -
+// one from before they were split, whose single EER, EchoEER, was the CPU one -
+// from the TPS fillTPS left, so that it still ranks by them when it is read
+// again.
+func (r *BenchRateReport) fillEER() {
+	tps := RateTPS(r.RecvTimes, r.Duration)
+	if tps == 0 {
+		tps = float64(r.TPS)
+	}
+	if r.CPUEER == 0 {
+		r.CPUEER = CPUEER(tps, r.CPUAvg)
+	}
+	if r.MEMEER == 0 {
+		r.MEMEER = MEMEER(tps, r.MEMRSSAvg)
 	}
 }
