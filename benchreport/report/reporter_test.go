@@ -203,8 +203,8 @@ func TestHiddenColumnsStayInTheJSON(t *testing.T) {
 		!strings.Contains(table, "12.50") {
 		t.Errorf("BenchMultiplex table:\n%s", table)
 	}
-	if summary := Summary([]Report{echo}, []Report{rate}); !strings.Contains(summary, "| Client           | rust ") {
-		t.Errorf("Summary does not show the clients without their prefix:\n%s", summary)
+	if summary := Summary([]Report{echo}, []Report{rate}); !strings.Contains(summary, "| Client           | rust-quiche ") {
+		t.Errorf("Summary does not show the client as language-framework:\n%s", summary)
 	}
 
 	for _, v := range []string{`"TP50"`, `"TP75"`, `"TP90"`, `"CPUMin"`, `"MEMMin"`, `"BenchClient":"benchcli-rust"`} {
@@ -281,7 +281,7 @@ func TestSummaryTakesTheParametersOutOfTheTables(t *testing.T) {
 	}
 	rate[0].(*BenchRateReport).Pprof = &on
 	summary := Summary(conns, echo, rate)
-	rows := []string{"Project", "GO-HTTP3-BENCHMARK", "Client", "rust", "Client Threads", "4", "Conns", "20000 (fib); 19998 (fasthttp)",
+	rows := []string{"Project", "GO-HTTP3-BENCHMARK", "Client", "rust-quiche", "Client Threads", "4", "Conns", "20000 (fib); 19998 (fasthttp)",
 		"Payload", "1024", "Dial Concurrency", "2000", "Echo Concurrency", "10000", "Echo Total", "2000000", "Echo Pprof", "off",
 		"Rate Duration", "10.00s", "Rate SendRate", "200", "Rate Batch", "10", "Rate Pprof", "on"}
 	if !rowOrder(summary, rows...) {
@@ -308,7 +308,7 @@ func TestSummaryTakesTheParametersOutOfTheTables(t *testing.T) {
 	if lines[0] != "| Parameter        | Value                         | Description                                                             |" ||
 		lines[1] != "| ---              | ---                           | ---                                                                     |" ||
 		lines[2] != "| Project          | GO-HTTP3-BENCHMARK            | The benchmark this run is from                                          |" ||
-		lines[3] != "| Client           | rust                          | The benchmark client the load came from                                 |" {
+		lines[3] != "| Client           | rust-quiche                   | The benchmark client the load came from                                 |" {
 		t.Errorf("Summary is not left-aligned:\n%s", summary)
 	}
 

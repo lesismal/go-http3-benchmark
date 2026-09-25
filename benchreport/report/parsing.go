@@ -55,11 +55,27 @@ func clientName(name string) string {
 	return strings.TrimPrefix(name, "benchcli-")
 }
 
+// ClientLabels is how the Summary shows each client, as language-framework:
+// the language the client is written in and the HTTP/3 library it is built
+// on. A client missing from here reads as its clientName.
+var ClientLabels = map[string]string{
+	"benchcli-rust": "rust-quiche",
+}
+
+// clientLabel is the Summary's Client value for the client name.
+func clientLabel(name string) string {
+	if label, ok := ClientLabels[name]; ok {
+		return label
+	}
+	return clientName(name)
+}
+
 // cellString is how a table shows the value of field.
 func cellString(field reflect.StructField, fieldValue reflect.Value) string {
 	switch field.Tag.Get("fmt") {
 	case "client":
-		return clientName(fieldValue.String())
+		// The client is a Summary row, never a table column.
+		return clientLabel(fieldValue.String())
 	case "mem":
 		if fieldValue.CanInt() {
 			return perf.I2MemString(uint64(fieldValue.Int()))
