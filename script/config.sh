@@ -88,7 +88,23 @@ esac
 Connections=(5000 50000)
 BodySize=(512 1024)
 BenchTime=(2000000)
+# Seconds of quiet between two client runs, after one framework's server has
+# exited and before the next one starts. Nothing sleeps after the last run.
 SleepTime=5
+
+# A single-node run starts each framework's server just before its client and
+# stops it right after, so that only the server being measured is running.
+#
+#   ServerStartTimeout     seconds a server has to log that it is listening
+#   ServerStartRetries     restarts of a server that exited with a port in use
+#   ServerStartRetryDelay  seconds before each of those restarts
+#   ServerReadyDelay       seconds between listening and starting the client
+#   ServerStopTimeout      seconds a server has to exit on SIGINT before SIGKILL
+ServerStartTimeout=30
+ServerStartRetries=3
+ServerStartRetryDelay=3
+ServerReadyDelay=1
+ServerStopTimeout=10
 
 # Which frameworks a run measures, and the order the servers are started and
 # the clients run in. In framework-name order, like config.FrameworkList, so

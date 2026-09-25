@@ -112,6 +112,94 @@ clean() {
     done
 }
 
+# Where script/server.sh sends a framework's server log and records its pid.
+server_log_file() { echo "./output/log/${1}.log"; }
+server_pid_file() { echo "./output/run/${1}.server.pid"; }
+
+# start_server <framework> [server flags]: starts the server and returns once
+# it has bound every benchmark port, which each server logs as
+# "server: listening on" - its control port comes up before them, so it is
+# no sign of readiness. Fails if the server exits first or takes longer than
+# ServerStartTimeout. A server that exits because one of its ports is in use
+# is started again, up to ServerStartRetries times, ServerStartRetryDelay
+# seconds apart: a sibling benchmark on the same machine may hold that port
+# for a while - go-http1-benchmark's servers use TCP 13001 to 13051, and 13051
+# is quiche's control port here.
+start_server() {
+    local f=$1
+    shift
+    local pid log tick attempt
+    log=$(server_log_file "$f")
+    for ((attempt = 0; ; attempt++)); do
+        ./script/server.sh "$f" "$@" || return 1
+        pid=$(cat "$(server_pid_file "$f")" 2>/dev/null)
+        for ((tick = 0; tick < ServerStartTimeout * 10; tick++)); do
+            if grep -q "server: listening on" "$log" 2>/dev/null; then
+                echo "${f} server is up, pid ${pid}"
+                return 0
+            fi
+            if [ -z "$pid" ] || ! kill -0 "$pid" 2>/dev/null; then
+                break
+            fi
+            sleep 0.1
+        done
+        if [ "$tick" -ge $((ServerStartTimeout * 10)) ]; then
+            break
+        fi
+        echo "${f} server exited before it was listening; the end of ${log}:" >&2
+        tail -n 20 "$log" >&2
+        if [ "$attempt" -ge "$ServerStartRetries" ] || ! grep -qi "in use" "$log"; then
+            rm -f "$(server_pid_file "$f")"
+            return 1
+        fi
+        echo "a port is in use: start ${f} server again in ${ServerStartRetryDelay}s" >&2
+        sleep "$ServerStartRetryDelay"
+    done
+    echo "${f} server not listening after ${ServerStartTimeout}s; the end of ${log}:" >&2
+    tail -n 20 "$log" >&2
+    stop_server "$f"
+    return 1
+}
+
+# stop_server <framework>: SIGINT, so that the server logs its final
+# statistics, then waits for it to exit, with SIGKILL after ServerStopTimeout.
+# By the pid script/server.sh recorded rather than by name, which would also
+# reach a sibling benchmark's server of the same name on this machine.
+stop_server() {
+    local f=$1 pid_file pid tick
+    pid_file=$(server_pid_file "$f")
+    pid=$(cat "$pid_file" 2>/dev/null)
+    if [ -z "$pid" ]; then
+        . ./script/killone.sh "${f}.server"
+        return
+    fi
+    echo "stop ${f} server, pid ${pid} ..."
+    kill -INT "$pid" 2>/dev/null
+    for ((tick = 0; tick < ServerStopTimeout * 10; tick++)); do
+        kill -0 "$pid" 2>/dev/null || break
+        sleep 0.1
+    done
+    if kill -0 "$pid" 2>/dev/null; then
+        echo "${f} server still running after ${ServerStopTimeout}s, SIGKILL"
+        kill -9 "$pid" 2>/dev/null
+        for ((tick = 0; tick < 50; tick++)); do
+            kill -0 "$pid" 2>/dev/null || break
+            sleep 0.1
+        done
+    fi
+    rm -f "$pid_file"
+    echo "stop ${f} server done"
+}
+
+# The pause between two client runs.
+bench_sleep() {
+    local s
+    for ((s = 1; s <= SleepTime; s++)); do
+        echo "sleep $s ..."
+        sleep 1
+    done
+}
+
 print_env() {
     echo "os:"
     echo
