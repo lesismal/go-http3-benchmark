@@ -4,7 +4,7 @@ go 1.27
 
 require (
 	github.com/gin-gonic/gin v1.12.0
-	github.com/lesismal/fib v0.0.0-20260925053615-180b6d22a084
+	github.com/lesismal/fib v0.0.0-20260926064024-9dec8fc9752b
 	github.com/lesismal/perf v0.0.0-20240508164715-fdb92a70ac1c
 	github.com/quic-go/quic-go v0.63.0
 )
