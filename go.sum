@@ -44,6 +44,8 @@ github.com/lesismal/fib v0.0.0-20260926064024-9dec8fc9752b h1:yynWEMzqDsHKCqp+DP
 github.com/lesismal/fib v0.0.0-20260926064024-9dec8fc9752b/go.mod h1:ECyKMzlRaSlOWKBorTaEushOJZclLtclDlfONJxBB4U=
 github.com/lesismal/fib v1.0.0 h1:L+qfSMP/DS1c2D1kS7tmLUaA0XewK7JHr9pnQZKLksg=
 github.com/lesismal/fib v1.0.0/go.mod h1:ECyKMzlRaSlOWKBorTaEushOJZclLtclDlfONJxBB4U=
+github.com/lesismal/fib v1.0.1-0.20260927171628-02435cab74d5 h1:3BK0A/r/ulwExDe/nbTmjuQf1qmDjwUursIgX7FiI6s=
+github.com/lesismal/fib v1.0.1-0.20260927171628-02435cab74d5/go.mod h1:ECyKMzlRaSlOWKBorTaEushOJZclLtclDlfONJxBB4U=
 github.com/lesismal/perf v0.0.0-20240508164715-fdb92a70ac1c h1:cB/Kbeew70XRJAgfRU0Ddf7yPy5jvaN7DeS0F+fP1HA=
 github.com/lesismal/perf v0.0.0-20240508164715-fdb92a70ac1c/go.mod h1:Re4gjh2ATiXLaIOGygcsWYlA2NnWPCCGppJ4GQCVpLw=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
