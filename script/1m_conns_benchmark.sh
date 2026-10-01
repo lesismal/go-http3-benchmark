@@ -4,6 +4,19 @@
 # on the client side. Needs the system settings in the README's "before
 # running the test", on both nodes of a two-node run.
 
+# -socketsyscalls[=BOOL] is the drivers' own flag, for BENCH_FIB_SOCKET_SYSCALLS
+# in script/config.sh: taken out here, before env.sh checks the value, so that
+# neither the clients nor the report step is handed a flag it does not define.
+driver_args=()
+for arg in "$@"; do
+    case "$arg" in
+        -socketsyscalls|--socketsyscalls) BENCH_FIB_SOCKET_SYSCALLS=true ;;
+        -socketsyscalls=*|--socketsyscalls=*) BENCH_FIB_SOCKET_SYSCALLS=${arg#*=} ;;
+        *) driver_args+=("$arg") ;;
+    esac
+done
+set -- ${driver_args[@]+"${driver_args[@]}"}
+
 . ./script/env.sh || { return 1 2>/dev/null || exit 1; }
 
 echo $line

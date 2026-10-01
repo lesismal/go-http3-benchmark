@@ -5,6 +5,11 @@
 framework=$1
 shift
 
+# fib alone takes this flag; see BENCH_FIB_SOCKET_SYSCALLS in script/config.sh.
+case "$framework" in
+    fib) set -- "-socketsyscalls=${BENCH_FIB_SOCKET_SYSCALLS}" "$@" ;;
+esac
+
 echo "run ${framework} server on cpu ${server_cpu_list:-unbound}"
 mkdir -p ./output/log ./output/run
 # "$@" rather than $2 through $9, however many flags the driver forwards.

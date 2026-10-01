@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	stdhttp "net/http"
 	"time"
 
@@ -12,6 +13,12 @@ import (
 	fibhttp "github.com/lesismal/fib/http"
 	fibhttp3 "github.com/lesismal/fib/http3"
 )
+
+// fib's own, so defined here rather than among the flags in frameworks, which
+// every server takes: script/server.sh passes it to this server alone, from
+// BENCH_FIB_SOCKET_SYSCALLS in script/config.sh.
+var socketSyscalls = flag.Bool("socketsyscalls", true,
+	`read and write sockets with recvfrom, sendto and sendmsg rather than read, write and writev (fib.Config.SocketSyscalls; Linux TCP only, so not this UDP server's sockets)`)
 
 func main() {
 	frameworks.Init(config.Fib)
@@ -36,6 +43,8 @@ func main() {
 	serverConfig := fib.DefaultConfig()
 	serverConfig.Network = "udp"
 	serverConfig.Addrs = addrs
+	serverConfig.SocketSyscalls = *socketSyscalls
+	logging.Printf("%v server: socketsyscalls=%v", config.Fib, serverConfig.SocketSyscalls)
 	// The engine closes a UDP peer that has been silent this long, which has
 	// to come after QUIC's own idle timeout rather than before it: fib's
 	// documentation asks for the QUIC one to be the shorter.

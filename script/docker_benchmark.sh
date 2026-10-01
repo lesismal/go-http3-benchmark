@@ -20,6 +20,12 @@ Options:
                 (DOCKER_BENCH_SERVER_CPUS)
   -cpuc=N       Of those, CPUs the client is pinned to with taskset
                 (DOCKER_BENCH_CLIENT_CPUS)
+  -socketsyscalls=BOOL
+                fib only: true (default) has its server read and write
+                its sockets with recvfrom, sendto and sendmsg, false with
+                read, write and writev (BENCH_FIB_SOCKET_SYSCALLS; see
+                script/config.sh). A bare -socketsyscalls is true. Like
+                the -cpu* flags, it may come anywhere among the arguments.
   -h, --help    Show this help.
 
   The three -cpu* flags may come anywhere among the arguments; they are taken
@@ -34,6 +40,8 @@ Environment overrides:
   BENCH_CLIENT             Benchmark client, benchcli-<name>: rust (default)
   BENCH_REPORT_SORT        Report row order: result (default, best first) or
                            framework (see script/config.sh)
+  BENCH_FIB_SOCKET_SYSCALLS true (default) or false; -socketsyscalls
+                           overrides it
   DOCKER_BENCH_CPUS        Integer CPU count (default: about 75% available);
                            -cput overrides it
   DOCKER_BENCH_SERVER_CPUS The servers' CPU count; -cpus overrides it
@@ -76,6 +84,9 @@ for arg in "$@"; do
         -cput=*|--cput=*) cpu_total=${arg#*=} ;;
         -cpus=*|--cpus=*) cpu_server=${arg#*=} ;;
         -cpuc=*|--cpuc=*) cpu_client=${arg#*=} ;;
+        # Checked by config.sh, below.
+        -socketsyscalls|--socketsyscalls) BENCH_FIB_SOCKET_SYSCALLS=true ;;
+        -socketsyscalls=*|--socketsyscalls=*) BENCH_FIB_SOCKET_SYSCALLS=${arg#*=} ;;
         *) other_args+=("$arg") ;;
     esac
 done
@@ -273,6 +284,8 @@ run_args=(
     # Without this the container would write its tables in the default order
     # however the caller set it out here.
     --env "BENCH_REPORT_SORT=$BENCH_REPORT_SORT"
+    # And the calls the fib server reads and writes its sockets with.
+    --env "BENCH_FIB_SOCKET_SYSCALLS=$BENCH_FIB_SOCKET_SYSCALLS"
     --env "BENCH_CLIENT=$BENCH_CLIENT"
 )
 if [ -n "$run_frameworks" ]; then
@@ -341,6 +354,7 @@ Docker memory available: $daemon_memory_bytes bytes
 Container memory limit: $memory_description
 Benchmark client: benchcli-$BENCH_CLIENT
 Frameworks: ${run_frameworks:-all}
+Fib socket syscalls: $BENCH_FIB_SOCKET_SYSCALLS
 EOF
 cat "$result_dir/resources.txt"
 echo "Results: $result_dir"
