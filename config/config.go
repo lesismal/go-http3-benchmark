@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +25,7 @@ type InitArgs struct {
 // framework sits in the same place in all of them and a new one has one
 // obvious place to go in each.
 const (
+	Alos   = "alos"
 	Fib    = "fib"
 	Gin    = "gin"
 	QuicGo = "quicgo"
@@ -39,6 +41,7 @@ const (
 // same ports, since neither is built from this package; TestPortsMatch holds
 // them to these.
 var Ports = map[string]string{
+	Alos:   "3401:3450",
 	Fib:    "3001:3050",
 	Gin:    "3101:3150",
 	QuicGo: "3201:3250",
@@ -56,12 +59,13 @@ var Ports = map[string]string{
 // go-http1/http2/websocket benchmarks listen on (10001 and up).
 //
 // script/config.sh carries the same range; TestPortsMatch holds it to this.
-const ReservedPorts = "3001-3351"
+const ReservedPorts = "3001-3451"
 
 // FrameworkLangs is the language each framework's server is written in, as
 // the Lang column of the report tables shows it: "go", "rust", "c++" and so
 // on.
 var FrameworkLangs = map[string]string{
+	Alos:   "go",
 	Fib:    "go",
 	Gin:    "go",
 	QuicGo: "go",
@@ -72,6 +76,7 @@ var FrameworkLangs = map[string]string{
 // row order of a -sort=framework report, which is what puts a framework on the
 // same row in every table and across runs, whatever it scored.
 var FrameworkList = []string{
+	Alos,
 	Fib,
 	Gin,
 	QuicGo,
@@ -82,7 +87,39 @@ var FrameworkList = []string{
 // body is the request body, byte for byte, with a Content-Length.
 const EchoPath = "/echo"
 
+// BenchPortsEnv names the environment variable that narrows every framework
+// to the first N of its benchmark ports, which its server listens on and the
+// client dials: BENCH_PORTS=1 puts every connection on one port. Unset, or
+// anything but a positive integer, leaves all of them. The control port does
+// not move. script/config.sh checks and exports it, and benchcli-rust and the
+// quiche server read the same variable.
+const BenchPortsEnv = "BENCH_PORTS"
+
+// BenchPorts is BENCH_PORTS as a count, or 0 when it does not narrow anything.
+func BenchPorts() int {
+	n, err := strconv.Atoi(os.Getenv(BenchPortsEnv))
+	if err != nil || n < 1 {
+		return 0
+	}
+	return n
+}
+
+// GetFrameworkBenchmarkPorts is the UDP ports framework's server listens on
+// for the benchmark: its range in Ports, or the first BENCH_PORTS of them.
 func GetFrameworkBenchmarkPorts(framework string) ([]int, error) {
+	ports, err := frameworkPortRange(framework)
+	if err != nil {
+		return nil, err
+	}
+	if n := BenchPorts(); n > 0 && n < len(ports) {
+		ports = ports[:n]
+	}
+	return ports, nil
+}
+
+// frameworkPortRange is every port of framework's range in Ports, whatever
+// BENCH_PORTS says.
+func frameworkPortRange(framework string) ([]int, error) {
 	portRange, ok := Ports[framework]
 	if !ok {
 		return nil, fmt.Errorf("unknown framework %q", framework)
@@ -158,9 +195,10 @@ func GetFrameworkBenchmarkAddrs(framework, ip string) ([]string, error) {
 }
 
 // frameworkControlPort is the port a framework's control routes listen on:
-// the one after its last benchmark port.
+// the one after the last port of its range, however many of them BENCH_PORTS
+// leaves to the benchmark.
 func frameworkControlPort(framework string) (int, error) {
-	ports, err := GetFrameworkBenchmarkPorts(framework)
+	ports, err := frameworkPortRange(framework)
 	if err != nil {
 		return 0, err
 	}

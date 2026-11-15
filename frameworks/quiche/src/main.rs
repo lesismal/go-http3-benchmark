@@ -73,7 +73,15 @@ fn main() {
 
     control::start(PORTS.1 + 1);
 
-    let ports: Vec<u16> = (PORTS.0..=PORTS.1).collect();
+    // The first BENCH_PORTS of them when that is a positive integer, as
+    // config.GetFrameworkBenchmarkPorts narrows them; the control port above
+    // stays after the last port of the whole range.
+    let bench_ports = std::env::var("BENCH_PORTS")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .filter(|&n| n >= 1)
+        .unwrap_or(usize::MAX);
+    let ports: Vec<u16> = (PORTS.0..=PORTS.1).take(bench_ports).collect();
     let threads = match f.get_int("t") {
         n if n > 0 => n as usize,
         _ => std::thread::available_parallelism().map_or(1, |n| n.get()),
@@ -107,8 +115,8 @@ fn main() {
     logf!(
         "{FRAMEWORK} server: listening on {} UDP ports, :{} to :{}, {threads} threads",
         ports.len(),
-        PORTS.0,
-        PORTS.1
+        ports[0],
+        ports[ports.len() - 1]
     );
 
     unsafe {

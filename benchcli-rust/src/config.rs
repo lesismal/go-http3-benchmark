@@ -8,6 +8,7 @@ use std::net::{IpAddr, SocketAddr, ToSocketAddrs, UdpSocket};
 /// Name, first and last benchmark port, and whether the server is a Go
 /// program with pprof routes on its control port.
 pub const FRAMEWORKS: &[(&str, u16, u16, bool)] = &[
+    ("alos", 3401, 3450, true),
     ("fib", 3001, 3050, true),
     ("gin", 3101, 3150, true),
     ("quicgo", 3201, 3250, true),
@@ -36,7 +37,8 @@ fn bare_host(ip: &str) -> &str {
 }
 
 /// The UDP addresses the client dials for each of the framework's benchmark
-/// ports, resolved once.
+/// ports, resolved once: like config.GetFrameworkBenchmarkPorts, only the
+/// first BENCH_PORTS of them when that is set to a positive integer.
 pub fn benchmark_addrs(framework: &str, ip: &str) -> Result<Vec<SocketAddr>, String> {
     let (min, max) = ports(framework).ok_or_else(|| format!("unknown framework {framework:?}"))?;
     let host = bare_host(ip);
@@ -46,8 +48,19 @@ pub fn benchmark_addrs(framework: &str, ip: &str) -> Result<Vec<SocketAddr>, Str
         .next()
         .ok_or_else(|| format!("resolve {host}: no address"))?;
     Ok((min..=max)
+        .take(bench_ports().unwrap_or(usize::MAX))
         .map(|port| SocketAddr::new(base.ip(), port))
         .collect())
+}
+
+/// config.BenchPorts: BENCH_PORTS as a count, None when it narrows nothing.
+/// benchmark_addrs dials only the first that many ports when it is set; the
+/// control port stays after the last port of the whole range.
+pub fn bench_ports() -> Option<usize> {
+    std::env::var("BENCH_PORTS")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .filter(|&n| n >= 1)
 }
 
 /// Where the framework's control routes - /init, /ps and pprof - are: TCP, on

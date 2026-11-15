@@ -47,3 +47,22 @@ func TestFrameworkListCoversPorts(t *testing.T) {
 		}
 	}
 }
+
+// BENCH_PORTS narrows the benchmark ports to the first N of each range and
+// leaves the control port where it is.
+func TestBenchPorts(t *testing.T) {
+	t.Setenv(BenchPortsEnv, "1")
+	ports, err := GetFrameworkBenchmarkPorts(Fib)
+	if err != nil || len(ports) != 1 || ports[0] != 3001 {
+		t.Fatalf("BENCH_PORTS=1: ports %v, %v; want [3001]", ports, err)
+	}
+	if addr, _ := GetFrameworkControlServerAddr(Fib); addr != ":3051" {
+		t.Errorf("BENCH_PORTS=1: control %v, want :3051", addr)
+	}
+	for _, v := range []string{"", "0", "-3", "x", "100"} {
+		t.Setenv(BenchPortsEnv, v)
+		if ports, _ := GetFrameworkBenchmarkPorts(Fib); len(ports) != 50 {
+			t.Errorf("BENCH_PORTS=%q: %d ports, want all 50", v, len(ports))
+		}
+	}
+}

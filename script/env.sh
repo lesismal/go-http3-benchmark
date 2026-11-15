@@ -279,6 +279,7 @@ print_env() {
     echo $line
     echo "report sort: ${BENCH_REPORT_SORT} (result = best first, framework = config.FrameworkList order)"
     echo "fib socket syscalls: ${BENCH_FIB_SOCKET_SYSCALLS} (true = recvfrom/sendto/sendmsg, false = read/write/writev)"
+    echo "benchmark ports per framework: ${BENCH_PORTS:-all}"
     echo $line
     echo "go env:"
     echo

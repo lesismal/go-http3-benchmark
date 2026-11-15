@@ -37,6 +37,8 @@ Options:
 
 Environment overrides:
   BENCH_FRAMEWORKS         Comma-separated framework subset
+  BENCH_PORTS              UDP benchmark ports per framework, the first N
+                           (default: all)
   BENCH_CLIENT             Benchmark client, benchcli-<name>: rust (default)
   BENCH_REPORT_SORT        Report row order: result (default, best first) or
                            framework (see script/config.sh)
@@ -291,6 +293,9 @@ run_args=(
 if [ -n "$run_frameworks" ]; then
     run_args+=(--env "BENCH_FRAMEWORKS=$run_frameworks")
 fi
+if [ -n "${BENCH_PORTS:-}" ]; then
+    run_args+=(--env "BENCH_PORTS=$BENCH_PORTS")
+fi
 
 # The machine the numbers were measured on, for resources.txt. Every probe
 # falls back to "unknown" rather than stopping the run over a missing tool.
@@ -354,6 +359,7 @@ Docker memory available: $daemon_memory_bytes bytes
 Container memory limit: $memory_description
 Benchmark client: benchcli-$BENCH_CLIENT
 Frameworks: ${run_frameworks:-all}
+Benchmark ports per framework: ${BENCH_PORTS:-all}
 Fib socket syscalls: $BENCH_FIB_SOCKET_SYSCALLS
 EOF
 cat "$result_dir/resources.txt"

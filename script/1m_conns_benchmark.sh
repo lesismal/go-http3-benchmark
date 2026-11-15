@@ -34,6 +34,7 @@ echo $line
 # way it narrows the full list.
 if [ -z "${BENCH_FRAMEWORKS:-}" ]; then
     frameworks=(
+        "alos"
         "fib"
         "gin"
         "quicgo"

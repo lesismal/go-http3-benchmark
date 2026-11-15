@@ -7,6 +7,7 @@ is written in Rust on [cloudflare/quiche](https://github.com/cloudflare/quiche).
 
 | Framework | Package | Server |
 | --- | --- | --- |
+| `alos` | [github.com/guno1928/alos-http](https://github.com/guno1928/alos-http) (Linux amd64 only) | one `core.Server` per port serving HTTP/3 alone (`ListenAndServeQUIC`, no TCP listener) on alos's own epoll UDP loop, each with its share of the CPUs as `SO_REUSEPORT` UDP sockets and receive loops (one each on fifty ports, one per CPU on one); request streams run on alos's shared stream workers |
 | `fib` | [github.com/lesismal/fib](https://github.com/lesismal/fib) | one fib UDP engine bound to every port, HTTP/3 handler from `fib/http3` |
 | `gin` | [github.com/gin-gonic/gin](https://github.com/gin-gonic/gin) | a `gin.Engine` (`gin.New`, no middleware) on the same `http3.Server`s as `quicgo`, the server gin's own `RunQUIC` starts |
 | `quicgo` | [github.com/quic-go/quic-go/http3](https://github.com/quic-go/quic-go) | one `http3.Server` per port, all sharing one `ServeMux` |
@@ -21,12 +22,13 @@ framework being measured serves nothing but `/echo`.
 
 | Framework | UDP benchmark ports | TCP control port |
 | --- | --- | --- |
+| `alos` | 3401-3450 | 3451 |
 | `fib` | 3001-3050 | 3051 |
 | `gin` | 3101-3150 | 3151 |
 | `quicgo` | 3201-3250 | 3251 |
 | `quiche` | 3301-3350 | 3351 |
 
-All of them are in one small block, 3001-3351 (`config.ReservedPorts`), below
+All of them are in one small block, 3001-3451 (`config.ReservedPorts`), below
 the ports the sibling go-http1/http2/websocket benchmarks use. Every client
 connection takes a local port of its own, so the rest of the ephemeral range
 is left to the client. The scripts reserve the block from it on Linux (see
@@ -122,6 +124,16 @@ bash script/benchmarkN.sh
 
 # 1m connections (needs the system settings below)
 bash script/1m_conns_benchmark.sh
+```
+
+`BENCH_PORTS=N` narrows every server to the first N of its fifty UDP
+benchmark ports, and the client to dialing those: `BENCH_PORTS=1` puts every
+connection on one port. The control port does not move. It works with
+`script/benchmark.sh`, `script/benchmarkN.sh` and
+`script/docker_benchmark.sh`:
+
+```sh
+BENCH_PORTS=1 BENCH_FRAMEWORKS=alos,fib bash script/docker_benchmark.sh -c=20000
 ```
 
 Change the defaults in [`script/config.sh`](script/config.sh). `BENCH_CLIENT`
@@ -261,7 +273,7 @@ when it cannot have them):
 
 ```sh
 sysctl -w net.ipv4.ip_local_port_range="1024 65535"
-sysctl -w net.ipv4.ip_local_reserved_ports="3001-3351"
+sysctl -w net.ipv4.ip_local_reserved_ports="3001-3451"
 sysctl -w fs.file-max=2000500
 sysctl -w fs.nr_open=2000500
 ulimit -n 2000500
@@ -270,7 +282,7 @@ sysctl -w net.core.wmem_max=7500000
 sysctl -w net.core.netdev_max_backlog=2048
 ```
 
-The benchmark scripts add `3001-3351` to `ip_local_reserved_ports` themselves
+The benchmark scripts add `3001-3451` to `ip_local_reserved_ports` themselves
 when they run as root, keeping whatever is reserved already. Otherwise they
 print the command and go on. On macOS nothing needs reserving: the ephemeral
 ports start at 49152 unless `net.inet.ip.portrange.first` was lowered, and

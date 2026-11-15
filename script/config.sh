@@ -112,6 +112,21 @@ case "$BENCH_FIB_SOCKET_SYSCALLS" in
 esac
 export BENCH_FIB_SOCKET_SYSCALLS
 
+# How many of each framework's UDP benchmark ports its server listens on and
+# the client dials: the first N of its range in config.Ports. Empty (the
+# default) is all fifty; BENCH_PORTS=1 puts every connection on one port. The
+# control port stays where it is. config.BenchPorts, benchcli-rust and the
+# quiche server read it too, so it is exported. Each server logs
+# "server: listening on" once it has bound the ports it was left, which is
+# what start_server in script/env.sh waits for.
+#
+#   BENCH_PORTS=1 BENCH_FRAMEWORKS=alos,fib bash script/benchmark.sh -c=20000
+BENCH_PORTS=${BENCH_PORTS:-}
+case "$BENCH_PORTS" in
+    ''|*[!0-9]*|0*) [ -z "$BENCH_PORTS" ] || { echo "Unsupported BENCH_PORTS: $BENCH_PORTS (want a positive integer)" >&2; return 1; } ;;
+esac
+export BENCH_PORTS
+
 # The matrix script/benchmarkN.sh runs every framework through.
 Connections=(5000 50000)
 BodySize=(512 1024)
@@ -135,20 +150,23 @@ ServerReadyDelay=1
 ServerStopTimeout=10
 
 # Every server port, benchmark and control alike: fib 3001-3051, gin
-# 3101-3151, quicgo 3201-3251 and quiche 3301-3351, as config.Ports lays them
+# 3101-3151, quicgo 3201-3251, quiche 3301-3351 and alos 3401-3451, as
+# config.Ports lays them
 # out (config.TestPortsMatch holds this to config.ReservedPorts). Before
 # starting servers the drivers reserve it from the kernel's ephemeral ports -
 # net.ipv4.ip_local_reserved_ports on Linux, which needs root or, in Docker,
 # the --sysctl script/docker_benchmark.sh passes - so that no client socket,
 # live or in TIME_WAIT, can hold a port a server is about to bind. On macOS
 # they are already below the ephemeral range, which starts at 49152.
-ReservedPorts="3001-3351"
+ReservedPorts="3001-3451"
 
 # Which frameworks a run measures, and the order the servers are started and
 # the clients run in. In framework-name order, like config.FrameworkList, so
 # that a framework is in the same place in every list and a new one has one
 # obvious place to go.
 #
+#   alos    github.com/guno1928/alos-http, its own epoll QUIC server, Go;
+#           Linux amd64 only
 #   fib     github.com/lesismal/fib, its HTTP/3 server (fib/http3), Go
 #   gin     github.com/gin-gonic/gin, served by quic-go/http3 as its RunQUIC
 #           does, Go
@@ -158,6 +176,7 @@ ReservedPorts="3001-3351"
 # A framework with a Cargo.toml in frameworks/<name> is a Rust server and is
 # built with cargo; the others are Go packages built with go build.
 frameworks=(
+    "alos"
     "fib"
     "gin"
     "quicgo"
